@@ -250,19 +250,35 @@ public class References {
         return getMagiskDirectory() + "/system";
     }
 
-    public static String getMagiskDirectory() {
-        final int magiskVer = Integer.parseInt(Root.runCommand("su -V"));
-        if (magiskDir != null)
-            return magiskDir;
-        if (magiskVer >= 18000 && magiskVer <= 18100) {
-            magiskDir = "/sbin/.magisk/img/substratum";
-        } else if (magiskVer >= 18101) {
-            magiskDir = "/data/adb/modules/substratum";
-        } else {
-            Log.d("MagiskCheck", "Magisk version cannot be lesser than 18.0, switching to system-installation");
-            magiskDir = "/";
+    public static boolean isInteger(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
-        Log.d("MagiskCheck", String.format("Detected directory %s for version %d", magiskDir, magiskVer));
+    }
+
+    public static String getMagiskDirectory() {
+        final int suVer = Integer.parseInt(Root.runCommand("su -V"));
+        if (magiskDir != null)
+                return magiskDir;
+        String result = Root.runCommand("su -c \"magisk -V\"");
+        if (isInteger(result)){
+            final int magiskVer = Integer.parseInt(Root.runCommand("su -c \"magisk -V\""));
+            if (magiskVer >= 18000 && magiskVer <= 18100) {
+                magiskDir = "/sbin/.magisk/img/substratum";
+            } else if (magiskVer >= 18101) {
+                magiskDir = "/data/adb/modules/substratum";
+            } else {
+                Log.d("MagiskCheck", "Magisk version cannot be lesser than 18.0, switching to system-installation");
+                magiskDir = "/";
+            }
+        }
+        else {
+            magiskDir = "/data/adb/modules/substratum";
+        }
+        Log.d("MagiskCheck", String.format("Detected directory %s for version %d", magiskDir, suVer));
         return magiskDir;
     }
 

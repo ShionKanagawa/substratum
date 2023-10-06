@@ -23,14 +23,14 @@ public class MagiskHelper {
     private static void installModule(final Context context) {
         // Return if not using Magisk, when directory is "/" it means the version
         // is unsupported and we're falling back to modifying system.
-        if (!checkMagisk() || MAGISK_DIR.equals("/"))
+        if ((!checkMagisk() &&!checkKernelSU())|| MAGISK_DIR.equals("/"))
             return;
 
         Substratum.log(TAG, "Magisk module does not exist, creating!");
         String command = "set -ex \n" +
                 String.format("mkdir -p %s; ", MAGISK_DIR) +
                 String.format(
-                        "printf 'name=substratum\nversion=%s\nversionCode=%s\nauthor=substratum development team\ndescription=Systemless overlays for Substratum\nminMagisk=1500\n' > %s/module.prop; ",
+                        "printf 'id=substratum\nname=substratum\nversion=%s\nversionCode=%s\nauthor=substratum development team\ndescription=Systemless overlays for Substratum\nminMagisk=1500\n' > %s/module.prop; ",
                         BuildConfig.VERSION_NAME,
                         BuildConfig.VERSION_CODE,
                         MAGISK_DIR
@@ -49,7 +49,9 @@ public class MagiskHelper {
     private static boolean checkMagisk() {
         return Root.runCommand("su --version").contains("MAGISKSU");
     }
-
+    private static boolean checkKernelSU() {
+        return Root.runCommand("su --version").contains("KernelSU");
+    }
     private static boolean moduleExists() {
         return Root.runCommand(String.format("test -d %s && echo '1'", MAGISK_DIR)).equals("1");
     }
